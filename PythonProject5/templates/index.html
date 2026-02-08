@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GYM ROUTINE BUILDER</title>
+    <style>
+        /* 전체 페이지에 적용될 기본 스타일 */
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif; /* 다크 모드 배경 */
+            color: #e0e0e0; /* 기본 텍스트 색상 */
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center; /* 수직 중앙 정렬 */
+            min-height: 100vh;
+            /* 은은한 덤벨 아이콘 패턴 배경 추가 */
+            background-color: #121212;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 100 100'%3E%3Cpath d='M25 40 V60 H20 V40z M80 40 V60 H75 V40z M20 42 H10 V58 H20z M80 42 H90 V58 H80z M25 50 H75' stroke='%232a2a2a' stroke-width='4' fill='none'/%3E%3C/svg%3E");
+            overflow: hidden; /* 애니메이션 시 스크롤바 방지 */
+        }
+
+        /* 전체 레이아웃을 감싸는 래퍼 */
+        .main-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
+        }
+
+        /* 콘텐츠를 감싸는 컨테이너 스타일 */
+        .container {
+            background-color: #1e1e1e; /* 컨테이너 배경 */
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 600px; /* 너비 살짝 줄임 */
+            text-align: center;
+            border-top: 4px solid #e74c3c; /* 포인트 컬러 */
+            transition: transform 0.5s ease-in-out;
+        }
+
+        /* 폼 스타일 */
+        .choice-form {
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .choice-form select {
+            padding: 10px 15px;
+            font-size: 1em;
+            border-radius: 8px;
+            border: 2px solid #444;
+            background-color: #333;
+            color: #e0e0e0;
+            flex-grow: 1;
+        }
+
+        .choice-form button {
+            padding: 12px 25px;
+            font-size: 1em;
+            font-weight: bold;
+            color: #fff;
+            background-color: #e74c3c; /* 포인트 컬러 버튼 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .choice-form button:hover {
+            background-color: #c0392b;
+        }
+
+        /* 메인 제목 스타일 */
+        h1 {
+            color: #ffffff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        h2 {
+            color: #e74c3c;
+            margin-top: 40px;
+        }
+        
+        /* 결과 헤더 (제목 + 뒤로가기 버튼) */
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        /* 뒤로가기 버튼 */
+        .back-btn {
+            display: inline-block;
+            padding: 8px 14px;
+            background-color: #444;
+            color: #e0e0e0;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .back-btn:hover {
+            background-color: #555;
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 운동 목록 리스트 스타일 */
+        .exercise-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* 카드 사이 간격 */
+        }
+
+        /* 각 운동 카드 스타일 */
+        .exercise-card {
+            background-color: #2c2c2c;
+            padding: 20px;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative; /* 자식 요소의 absolute 포지셔닝 기준 */
+            overflow: hidden; /* 내부 요소가 밖으로 나가지 않도록 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .exercise-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 운동 이름 스타일 */
+        .exercise-card h3 {
+            margin: 0 0 8px 0;
+            color: #ffffff;
+            font-size: 1.4em;
+        }
+
+        /* 운동 설명 스타일 */
+        .exercise-card p {
+            margin: 0;
+            color: #a0a0a0;
+            font-size: 1em;
+            line-height: 1.6;
+            flex-basis: 70%; /* 설명 텍스트가 차지할 공간 */
+        }
+
+        /* 완료 버튼 */
+        .complete-btn {
+            padding: 8px 16px;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #fff;
+            background-color: #3498db;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.3s;
+            white-space: nowrap; /* 버튼 텍스트 줄바꿈 방지 */
+        }
+
+        /* 완료 상태 스타일 */
+        .card-completed .exercise-card-content {
+            opacity: 0.3; /* 내용물 흐리게 */
+        }
+
+        .card-completed .complete-btn {
+            opacity: 0;
+            pointer-events: none; /* 버튼 클릭 비활성화 */
+        }
+
+        /* 체크마크 오버레이 */
+        .checkmark-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(26, 188, 156, 0.3);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none; /* 클릭 이벤트 통과 */
+        }
+
+        .card-completed .checkmark-overlay {
+            opacity: 1;
+        }
+
+        /* 체크마크 아이콘 (CSS로 그리기) */
+        .checkmark {
+            width: 40px;
+            height: 80px;
+            border-bottom: 12px solid #fff;
+            border-right: 12px solid #fff;
+            transform: rotate(45deg) scale(0); /* 처음엔 안보이게 */
+            transition: transform 0.4s ease-in-out 0.2s; /* 딜레이 후 나타남 */
+        }
+
+        .card-completed .checkmark {
+            transform: rotate(45deg) scale(1); /* 완료 시 크기 키우기 */
+        }
+
+        /* 초기 화면 스타일 */
+        .initial-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+            text-align: left;
+        }
+
+        .initial-view-text h2 {
+            margin-top: 0;
+            font-size: 2em;
+            color: #fff;
+            text-align: center;
+        }
+
+        .initial-view-text p {
+            font-size: 1.1em;
+            color: #a0a0a0;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        /* 페이드인 애니메이션 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 캐릭터 컨테이너 */
+        .character-container {
+            width: 350px;
+            height: 450px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+        }
+
+        /* 캐릭터 SVG 스타일 */
+        .character-container svg {
+            width: 100%;
+            height: auto;
+            animation: character-appear 1s ease-out forwards;
+            opacity: 0;
+        }
+
+        /* 캐릭터 등장 애니메이션 */
+        @keyframes character-appear {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* 결과 화면일 때 레이아웃 조정 */
+        .main-wrapper.result-view .character-container {
+            transform: translateX(-200%);
+            opacity: 0;
+            width: 0; /* 공간 차지하지 않도록 */
+        }
+
+        .main-wrapper.result-view .container {
+            transform: translateX(-50%);
+        }
+
+    </style>
+</head>
+<body>
+    <!-- 결과 화면인지에 따라 클래스 부여 -->
+    <div class="main-wrapper {% if selected_part %}result-view{% endif %}">
+        <div class="character-container">
+            <!-- 애니메이션 스타일 캐릭터 SVG -->
+            <svg viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg">
+                <g id="character">
+                    <!-- Skin -->
+                    <g fill="#F2C2A8">
+                        <!-- Head -->
+                        <path d="M90,25 C80,10 120,10 110,25 C125,25 130,50 115,60 C110,65 90,65 85,60 C70,50 75,25 90,25 Z" />
+                        <!-- Neck -->
+                        <rect x="95" y="60" width="10" height="10" />
+                        <!-- Arm -->
+                        <path d="M125,80 C135,80 140,100 145,120 L155,160 A 15 15 0 0 1 125 160 L120,120 C115,100 120,80 125,80 Z" />
+                    </g>
+                    <!-- Hair -->
+                    <path d="M90,25 C80,10 120,10 110,25 C115,15 125,20 120,30 C110,15 90,15 85,30 C75,20 85,15 90,25 Z" fill="#2A2A2A"/>
+                    <!-- Eyes and Mouth -->
+                    <g fill="#1e1e1e">
+                        <circle cx="93" cy="45" r="2" />
+                        <circle cx="107" cy="45" r="2" />
+                        <path d="M98,55 Q102,58 106,55" stroke="#1e1e1e" stroke-width="1" fill="none"/>
+                    </g>
+                    <!-- Clothes (Tank Top) -->
+                    <g fill="#e74c3c">
+                        <path d="M95,70 L85,80 V130 H115 V80 L105,70 H95 Z" />
+                        <rect x="85" y="130" width="30" height="40" />
+                    </g>
+                    <!-- Legs -->
+                    <g fill="#444">
+                        <rect x="85" y="170" width="13" height="50" />
+                        <rect x="102" y="170" width="13" height="50" />
+                    </g>
+                    <!-- Dumbbell -->
+                    <g transform="translate(135, 135) rotate(15)">
+                        <rect x="-2.5" y="-20" width="5" height="40" fill="#888" />
+                        <rect x="-10" y="-25" width="20" height="10" fill="#3498db" rx="2"/>
+                        <rect x="-10" y="15" width="20" height="10" fill="#3498db" rx="2"/>
+                    </g>
+                </g>
+            </svg>
+        </div>
+
+        <div class="container">
+        <h1>💪 GYM ROUTINE BUILDER</h1>
+
+        <!-- 사용자가 운동 부위를 선택하고 서버로 전송하는 폼 -->
+        <form class="choice-form" method="POST" action="/">
+            <select name="body_part" required>
+                <option value="" disabled {% if not selected_part %}selected{% endif %}>운동할 부위를 선택하세요</option>
+                <!-- 서버에서 전달받은 body_parts 리스트로 옵션을 동적으로 생성 -->
+                {% for part in body_parts %}
+                    <option value="{{ part }}" {% if part == selected_part %}selected{% endif %}>{{ part }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">루틴 보기</button>
+        </form>
+
+        <!-- 사용자가 부위를 선택했을 경우에만 운동 목록을 표시 -->
+        {% if selected_part %}
+            <div class="result-header">
+                <h2>{{ selected_part }} Routine</h2>
+                <a href="/" class="back-btn">⟲ 다시 선택</a>
+            </div>
+            <!-- 서버에서 전달받은 exercises 리스트를 반복하여 표시 -->
+            <ul class="exercise-list">
+                {% for exercise in exercises %}
+                <li class="exercise-card">
+                    <div class="exercise-card-content">
+                        <h3>{{ exercise.name }}</h3>
+                        <p>{{ exercise.description }}</p>
+                    </div>
+                    <button class="complete-btn">완료</button>
+                    <div class="checkmark-overlay">
+                        <div class="checkmark"></div>
+                    </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <!-- 초기 화면에 보여줄 이미지와 텍스트 -->
+            <div class="initial-view">
+                <div class="initial-view-text">
+                    <h2>Ready to Build?</h2>
+                    <p>위에서 운동할 부위를 선택하고<br>'루틴 보기' 버튼을 눌러 시작하세요!</p>
+                </div>
+            </div>
+        {% endif %}
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const exerciseCards = document.querySelectorAll('.exercise-card');
+
+            exerciseCards.forEach(card => {
+                const completeBtn = card.querySelector('.complete-btn');
+
+                // '완료' 버튼 클릭 시
+                completeBtn.addEventListener('click', function() {
+                    card.classList.add('card-completed');
+                });
+
+                // 카드 자체를 클릭하면 초기화 (완료 상태 해제)
+                card.addEventListener('click', function(event) {
+                    if (event.target !== completeBtn && card.classList.contains('card-completed')) {
+                        card.classList.remove('card-completed');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
