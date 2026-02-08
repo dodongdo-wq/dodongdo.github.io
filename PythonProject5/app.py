@@ -42,4 +42,6 @@ def index():
 # 이 파일이 직접 실행될 경우 Flask 개발 서버를 실행
 if __name__ == '__main__':
     # debug=True 모드로 실행하여 코드 변경 시 서버가 자동으로 재시작되도록 설정
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
